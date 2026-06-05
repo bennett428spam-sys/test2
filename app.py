@@ -295,15 +295,5 @@ with graph_layout:
         use_container_width=True
     )
 
-# --- ASSUMPTIONS ---
-st.divider()
-st.subheader("📋 Assumptions")
-st.markdown("* **Timeline:** 2026 to 2053.")
-st.markdown("* **Slider:** Includes Airbnb costs.")
-st.markdown("* **Airbnb Tax:** 20% tax on gains.")
-st.markdown("* **Safe-Harbor:** Allows drop before $450k.")
-st.markdown("* **Inflation:** 3% baseline setup.")
-st.markdown("* **Real Estate:** 4% annual setup.")
-st.markdown("* **Mortgage:** Clear by Oct 2027.")
-st.markdown("* **Family Loan:** Retained at 6% rate.")
+
 st.markdown("* **Investments:** Liquid moves at 4%.")
