@@ -120,10 +120,22 @@ sc = go.Scatter(x=x_v, y=y_v, mode="lines+markers")
 fig.add_trace(sc)
 
 if airbnb_sold_year:
-    fig.add_vline(x=airbnb_sold_year, line_dash="dash")
+    a_age = airbnb_sold_year - START_YEAR + START_AGE
+    t_a = f"Airbnb (Age {a_age})"
+    da = {"x": airbnb_sold_year, "line_dash": "dash"}
+    da["line_color"] = "#f59e0b"
+    da["annotation_text"] = t_a
+    da["annotation_position"] = "bottom right"
+    fig.add_vline(**da)
 
 if home_sold_year:
-    fig.add_vline(x=home_sold_year, line_dash="dash")
+    h_age = home_sold_year - START_YEAR + START_AGE
+    t_h = f"Home (Age {h_age})"
+    dh = {"x": home_sold_year, "line_dash": "dash"}
+    dh["line_color"] = "#ec4899"
+    dh["annotation_text"] = t_h
+    dh["annotation_position"] = "top left"
+    fig.add_vline(**dh)
 
 fig.update_layout(height=375, template="plotly_white")
 st.plotly_chart(fig, use_container_width=True)
@@ -131,20 +143,4 @@ st.plotly_chart(fig, use_container_width=True)
 st.divider()
 st.subheader("🏁 Key Milestones")
 
-if broke_year:
-    b_age = broke_year - START_YEAR + START_AGE
-    st.header(f"🔴 Broke: {broke_year} (Age {b_age})")
-else:
-    st.header("🟢 Broke: Never")
-
-if airbnb_sold_year:
-    a_age = airbnb_sold_year - START_YEAR + START_AGE
-    st.header(f"🟠 Airbnb: {airbnb_sold_year} (Age {a_age})")
-else:
-    st.header("🟢 Airbnb: Not Sold")
-
-if home_sold_year:
-    h_age = home_sold_year - START_YEAR + START_AGE
-    st.header(f"💗 Home: {home_sold_year} (Age {h_age})")
-else:
-    st.header("🟢 Home: Not Sold")
+if broke_
