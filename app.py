@@ -30,14 +30,14 @@ SS_COLA = 0.03
 INVESTMENT_GROWTH = 0.06
 RE_GROWTH = 0.04        
 LOAN_INT = 0.06
-CAP_GAINS_RATE = 0.20  # 20% tax on gains
+CAP_GAINS_RATE = 0.20  
 
 # Airbnb Specific Breakdowns
 airbnb_val = 700000
-airbnb_basis = 400000   # Cost basis for tax tracking
+airbnb_basis = 400000   
 airbnb_gross = 92475
 airbnb_net = 34089
-airbnb_exp = airbnb_gross - airbnb_net # $58,386 operational expenses
+airbnb_exp = airbnb_gross - airbnb_net 
 
 # Initial Portfolio Values
 cash = 3000
@@ -153,8 +153,13 @@ for t in range(YEARS_TO_PROJECT + 1):
 
 df = pd.DataFrame(chart_data)
 
-# --- 4. MOBILE-OPTIMIZED TEXT LABELS ---
+# --- 4. MOBILE-OPTIMIZED TEXT LABELS (With Triple Quote Wrappers) ---
 if isinstance(broke_year, int):
-    broke_html = f"<span style='font-size:18px;font-weight:bold;color:#ef4444;'>Year {broke_year}</span><br><span style='font-size:14px;color:#6b7280;'>Age {broke_year - START_YEAR + START_AGE}</span>"
+    broke_html = f"""<span style="font-size:18px;font-weight:bold;color:#ef4444;">Year {broke_year}</span><br><span style="font-size:14px;color:#6b7280;">Age {broke_year - START_YEAR + START_AGE}</span>"""
 else:
-    broke_html = f"<span style='font-size:
+    broke_html = f"""<span style="font-size:16px;font-weight:bold;color:#10b981;">Never<br>(Maintains Wealth)</span>"""
+
+if isinstance(airbnb_sold_year, int):
+    airbnb_html = f"""<span style="font-size:18px;font-weight:bold;color:#f59e0b;">Year {airbnb_sold_year}</span><br><span style="font-size:14px;color:#6b7280;">Age {airbnb_sold_year - START_YEAR + START_AGE}</span>"""
+else:
+    airbnb_html = f"""<span style="font-size:
