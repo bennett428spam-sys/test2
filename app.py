@@ -12,7 +12,6 @@ st.title("📊 Mom's Financial Runway Planner")
 st.write("Adjust the slider to see how changing annual spending changes her financial future.")
 
 # --- CREATE LAYOUT CONTAINERS FOR UI ORDERING ---
-# This allows us to display elements in one order, but calculate them in another.
 milestones_layout = st.container()
 slider_layout = st.container()
 graph_layout = st.container()
@@ -116,64 +115,4 @@ for t in range(YEARS_TO_PROJECT + 1):
     
     if airbnb_owned:
         income = curr_ss + (airbnb_gross * inf_factor)
-        expenses = target_spending + (mortgage_payment if curr_mortgage > 0 else 0)
-    else:
-        income = curr_ss
-        lifestyle_spending_today = max(0, spending_today - airbnb_exp)
-        expenses = (lifestyle_spending_today * inf_factor) + (mortgage_payment if curr_mortgage > 0 else 0)
-    
-    net_cash_flow = income - expenses
-    curr_liquid += net_cash_flow
-    
-    # Liquidation triggers
-    if curr_liquid < 0 and year > 2027:
-        if airbnb_owned:
-            gain = max(0, curr_airbnb_val - airbnb_basis)
-            tax_owed = gain * CAP_GAINS_RATE
-            curr_liquid += (curr_airbnb_val - tax_owed)
-            airbnb_owned = False
-            airbnb_sold_year = year
-            
-        if curr_liquid < 0 and home_owned:
-            curr_liquid += (curr_home_val - curr_mortgage)
-            curr_mortgage = 0
-            home_owned = False
-            home_sold_year = year
-            
-        if curr_liquid < 0:
-            is_broke = True
-            if broke_year is None:
-                broke_year = year
-            curr_liquid = 0
-
-    # Calculate Aggregate Net Worth
-    if is_broke:
-        nw = 0
-        curr_liquid = 0
-    else:
-        nw = curr_liquid
-        if airbnb_owned:
-            nw += curr_airbnb_val
-        if home_owned:
-            nw += (curr_home_val - curr_mortgage)
-        if loan_active:
-            nw += family_loan * ((1 + LOAN_INT) ** t)
-        
-    chart_data.append({
-        "Year": int(year), 
-        "Age": int(age), 
-        "Net Worth": float(nw)
-    })
-
-df = pd.DataFrame(chart_data)
-
-# --- 4. POPULATE MILESTONES (Injected at the top layout) ---
-with milestones_layout:
-    st.subheader("🏁 Key Milestones")
-    
-    broke_status = f"🔴 **Net Worth $0:** Year {broke_year} (Age {broke_year - START_YEAR + START_AGE})" if broke_year else "🟢 **Net Worth $0:** Never"
-    airbnb_status = f"🟠 **Sell Airbnb:** Year {airbnb_sold_year} (Age {airbnb_sold_year - START_YEAR + START_AGE})" if airbnb_sold_year else "🟢 **Airbnb:** Not Sold"
-    home_status = f"💗 **Sell Home:** Year {home_sold_year} (Age {home_sold_year - START_YEAR + START_AGE})" if home_sold_year else "🟢 **Home:** Not Sold"
-    
-    st.markdown(f"{broke_status} &nbsp;•&nbsp; {airbnb_status} &nbsp;•&nbsp; {home_status}")
-    st.markdown("---
+        expenses = target_spending + (mortgage_
