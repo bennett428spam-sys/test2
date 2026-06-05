@@ -15,10 +15,16 @@ st.write("Adjust the slider to see how changing annual spending changes her fina
 spending_today = st.slider(
     "Target Annual Spending (In Today's Dollars)", 
     min_value=60000, 
-    max_value=220000, 
+    max_value=300000, 
     value=100000, 
     step=5000,
-    format="$%d"
+    format="$%d",
+    help="Current spending baseline is marked at $200,000 below."
+)
+
+# Visual marker directly beneath the slider
+st.markdown(
+    "📍 **Current Spending Baseline: $200,000**"
 )
 
 # --- 2. SIMULATION CONSTANTS & ASSUMPTIONS ---
@@ -30,7 +36,7 @@ YEARS_TO_PROJECT = END_AGE - START_AGE
 # Rates & Taxes
 INFLATION = 0.03
 SS_COLA = 0.03          
-INVESTMENT_GROWTH = 0.06
+INVESTMENT_GROWTH = 0.04  # Lowered from 6% to 4%     
 RE_GROWTH = 0.04        
 LOAN_INT = 0.06
 CAP_GAINS_RATE = 0.20  
@@ -137,109 +143,3 @@ for t in range(YEARS_TO_PROJECT + 1):
             is_broke = True
             if broke_year is None:
                 broke_year = year
-            curr_liquid = 0
-
-    # Calculate Aggregate Net Worth
-    if is_broke:
-        nw = 0
-        curr_liquid = 0
-    else:
-        nw = curr_liquid
-        if airbnb_owned:
-            nw += curr_airbnb_val
-        if home_owned:
-            nw += (curr_home_val - curr_mortgage)
-        if loan_active:
-            nw += family_loan * ((1 + LOAN_INT) ** t)
-        
-    # Broken into multiple safe lines to completely prevent syntax truncation
-    chart_data.append({
-        "Year": year, 
-        "Age": age, 
-        "Net Worth": nw
-    })
-
-df = pd.DataFrame(chart_data)
-
-# --- 4. DISPLAY METRICS (Native markdown layout for seamless mobile stacking) ---
-st.subheader("🏁 Key Milestones")
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("**Net Worth $0**")
-    if broke_year:
-        st.markdown(f"🔴 **Year {broke_year}**\n*(Age {broke_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Never**\n*(Maintains Wealth)*")
-
-with col2:
-    st.markdown("**Sell Airbnb**")
-    if airbnb_sold_year:
-        st.markdown(f"🟠 **Year {airbnb_sold_year}**\n*(Age {airbnb_sold_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Not Sold**")
-
-with col3:
-    st.markdown("**Sell Primary Home**")
-    if home_sold_year:
-        st.markdown(f"💗 **Year {home_sold_year}**\n*(Age {home_sold_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Not Sold**")
-
-# --- 5. NET WORTH GRAPH ---
-st.subheader("Net Worth Trajectory (Ages 68 to 95)")
-fig = go.Figure()
-
-fig.add_trace(go.Scatter(
-    x=df["Year"], 
-    y=df["Net Worth"], 
-    mode="lines", 
-    name="Net Worth", 
-    line=dict(color="#10b981", width=3),
-    customdata=df["Age"],
-    hovertemplate="<b>Year:</b> %{x}<br><b>Mom's Age:</b> %{customdata}<br><b>Net Worth:</b> %{y:$,.0f}<extra></extra>"
-))
-
-# Add stacked vertical lines if assets get sold
-if airbnb_sold_year:
-    fig.add_vline(
-        x=airbnb_sold_year, 
-        line_dash="dash", 
-        line_color="#f59e0b", 
-        annotation_text=f"Sell Airbnb<br>Age {airbnb_sold_year - START_YEAR + START_AGE}", 
-        annotation_position="top left"
-    )
-
-if home_sold_year:
-    fig.add_vline(
-        x=home_sold_year, 
-        line_dash="dash", 
-        line_color="#ec4899", 
-        annotation_text=f"Sell Home<br>Age {home_sold_year - START_YEAR + START_AGE}", 
-        annotation_position="top left"
-    )
-
-fig.update_layout(
-    margin=dict(l=10, r=10, t=60, b=10),
-    height=350,
-    xaxis_title="Year",
-    yaxis_title="Net Worth ($)",
-    template="plotly_white",
-    hovermode="x unified"
-)
-st.plotly_chart(fig, use_container_width=True)
-
-# --- 6. ASSUMPTIONS BLOCK ---
-st.markdown("---")
-st.subheader("📋 System Assumptions & Rules")
-st.markdown(f"""
-* **Timeline Parameters:** The simulation starts in **2026** (Mom's Age: **{START_AGE}**) and cuts off strictly at **2053** (Mom's Age: **{END_AGE}**).
-* **Slider Spending Inclusions:** The target spending slider **includes** the Airbnb's yearly operating expenses (**$58,386**). If the Airbnb is sold, her annual expenses automatically drop by that exact amount since she no longer carries those property liabilities.
-* **Airbnb Tax & Sale Timeline:** The Airbnb is sold **no later than 2036** (Age **78**). Upon sale (planned or emergency), a **{CAP_GAINS_RATE*100:.0f}% capital gains tax** is applied to all asset growth above the **$400,000** cost basis before the net funds flow into cash reserves.
-* **Safe-Harbor Debt Rule (2026–2027):** The system permits a temporary negative cash balance during her first two years. This prevents an accidental, premature liquidation of the Airbnb before the **$450,000** cash windfall lands in October 2027.
-* **Inflation & Cost of Living:** Estimated at **{INFLATION*100:.0f}%** annually. Social Security starts at **$1,450/month** and receives a **{SS_COLA*100:.0f}%** annual COLA increase.
-* **Real Estate Growth:** Property values scale up at **{RE_GROWTH*100:.0f}%** per year.
-* **Primary Home Mortgage:** Wiped out completely in **October 2027** using the incoming **$450,000** lump sum. The remaining surplus from that lump sum is funneled directly into her liquid savings.
-* **Family Loan:** The **$245,000** loan compiles interest at **{LOAN_INT*100:.0f}%** and pays back fully as a single lump sum in **2029** (3-year average marker).
-* **Investment Growth:** Liquid asset funds grow at **{INVESTMENT_GROWTH*100:.0f}%** annually.
-""")
