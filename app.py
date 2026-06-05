@@ -36,7 +36,7 @@ YEARS_TO_PROJECT = END_AGE - START_AGE
 # Rates & Taxes
 INFLATION = 0.03
 SS_COLA = 0.03          
-INVESTMENT_GROWTH = 0.04  # Maintained at 4%
+INVESTMENT_GROWTH = 0.04       
 RE_GROWTH = 0.04        
 LOAN_INT = 0.06
 CAP_GAINS_RATE = 0.20  
@@ -185,67 +185,4 @@ with col2:
         st.markdown("🟢 **Not Sold**")
 
 with col3:
-    st.markdown("**Sell Primary Home**")
-    if home_sold_year:
-        st.markdown(f"💗 **Year {home_sold_year}**\n*(Age {home_sold_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Not Sold**")
-
-# --- 5. NET WORTH GRAPH ---
-st.subheader("Net Worth Trajectory (Ages 68 to 95)")
-fig = go.Figure()
-
-# Explicit list conversions completely prevent silent JavaScript chart failures
-years_list = df["Year"].tolist()
-nw_list = df["Net Worth"].tolist()
-ages_list = df["Age"].tolist()
-
-fig.add_trace(go.Scatter(
-    x=years_list, 
-    y=nw_list, 
-    mode="lines", 
-    name="Net Worth", 
-    line=dict(color="#10b981", width=3),
-    customdata=ages_list,
-    hovertemplate="<b>Year:</b> %{x}<br><b>Mom's Age:</b> %{customdata}<br><b>Net Worth:</b> %{y:$,.0f}<extra></extra>"
-))
-
-# Add dynamic markers if assets get sold
-if airbnb_sold_year:
-    fig.add_vline(
-        x=airbnb_sold_year, 
-        line_dash="dash", 
-        line_color="#f59e0b", 
-        annotation_text=f"Sell Airbnb<br>Age {airbnb_sold_year - START_YEAR + START_AGE}", 
-        annotation_position="top left"
-    )
-
-if home_sold_year:
-    fig.add_vline(
-        x=home_sold_year, 
-        line_dash="dash", 
-        line_color="#ec4899", 
-        annotation_text=f"Sell Home<br>Age {home_sold_year - START_YEAR + START_AGE}", 
-        annotation_position="top left"
-    )
-
-fig.update_layout(
-    margin=dict(l=10, r=10, t=60, b=10),
-    height=350,
-    xaxis_title="Year",
-    yaxis_title="Net Worth ($)",
-    template="plotly_white",
-    hovermode="x unified"
-)
-
-# Explicitly using theme="streamlit" guarantees proper canvas rendering
-st.plotly_chart(fig, use_container_width=True, theme="streamlit")
-
-# --- 6. ASSUMPTIONS BLOCK ---
-st.markdown("---")
-st.subheader("📋 System Assumptions & Rules")
-st.markdown(f"""
-* **Timeline Parameters:** The simulation starts in **2026** (Mom's Age: **{START_AGE}**) and cuts off strictly at **2053** (Mom's Age: **{END_AGE}**).
-* **Slider Spending Inclusions:** The target spending slider **includes** the Airbnb's yearly operating expenses (**$58,386**). If the Airbnb is sold, her annual expenses automatically drop by that exact amount since she no longer carries those property liabilities.
-* **Airbnb Tax & Sale Timeline:** The Airbnb is sold **no later than 2036** (Age **78**). Upon sale (planned or emergency), a **{CAP_GAINS_RATE*100:.0f}% capital gains tax** is applied to all asset growth above the **$400,000** cost basis before the net funds flow into cash reserves.
-* **Safe-Harbor Debt Rule (2026–2027):** The system permits a temporary negative cash balance during her first two years. This
+    st.markdown("**Sell Primary Home
