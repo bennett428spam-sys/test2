@@ -20,7 +20,9 @@ spending_today = st.slider(
 
 # --- 2. SIMULATION CONSTANTS & ASSUMPTIONS ---
 START_YEAR = 2026
-YEARS_TO_PROJECT = 50
+START_AGE = 68
+END_AGE = 95
+YEARS_TO_PROJECT = END_AGE - START_AGE # 27 Years
 
 # Rates
 INFLATION = 0.03
@@ -64,8 +66,9 @@ is_broke = False
 chart_data = []
 
 # --- 3. THE FINANCIAL SIMULATION ENGINE ---
-for year in range(START_YEAR, START_YEAR + YEARS_TO_PROJECT + 1):
-    t = year - START_YEAR
+for t in range(YEARS_TO_PROJECT + 1):
+    year = START_YEAR + t
+    age = START_AGE + t
     inf_factor = (1 + INFLATION) ** t
     
     if t > 0:
@@ -77,10 +80,11 @@ for year in range(START_YEAR, START_YEAR + YEARS_TO_PROJECT + 1):
         else:
             curr_airbnb_net = 0
         
+        # Only grow liquid cash if it's positive
         if curr_liquid > 0:
             curr_liquid *= (1 + INVESTMENT_GROWTH)
 
-    # Event: Oct 2027 Lump Sum
+    # Event: Oct 2027 Lump Sum ($450k arrives, wipes out remaining mortgage)
     if year == 2027:
         curr_liquid += 450000
         curr_liquid -= curr_mortgage
@@ -100,24 +104,24 @@ for year in range(START_YEAR, START_YEAR + YEARS_TO_PROJECT + 1):
     net_cash_flow = income - expenses
     curr_liquid += net_cash_flow
     
-    # Liquidation triggers if cash runs out
-    if curr_liquid < 0:
+    # Liquidation triggers (ONLY active after 2027 to allow temporary bridge debt)
+    if curr_liquid < 0 and year > 2027:
         if airbnb_owned:
             curr_liquid += curr_airbnb_val
             airbnb_owned = False
-            airbnb_sold_year = str(year)
+            airbnb_sold_year = year
             curr_airbnb_net = 0
             
         if curr_liquid < 0 and home_owned:
             curr_liquid += (curr_home_val - curr_mortgage)
             curr_mortgage = 0
             home_owned = False
-            home_sold_year = str(year)
+            home_sold_year = year
             
         if curr_liquid < 0:
             is_broke = True
             if broke_year == "Never (Maintains Wealth)":
-                broke_year = str(year)
+                broke_year = year
             curr_liquid = 0
 
     # Calculate Aggregate Net Worth
@@ -133,30 +137,58 @@ for year in range(START_YEAR, START_YEAR + YEARS_TO_PROJECT + 1):
         if loan_active:
             nw += family_loan * ((1 + LOAN_INT) ** t)
         
-    chart_data.append({"Year": year, "Net Worth": nw})
+    chart_data.append({"Year": year, "Age": age, "Net Worth": nw})
 
 df = pd.DataFrame(chart_data)
 
-# --- 4. DISPLAY METRICS ---
+# --- 4. FORMAT STRING LABELS FOR METRICS ---
+airbnb_metric_str = f"Year {airbnb_sold_year} (Age {airbnb_sold_year - START_YEAR + START_AGE})" if isinstance(airbnb_sold_year, int) else "Not Sold"
+home_metric_str = f"Year {home_sold_year} (Age {home_sold_year - START_YEAR + START_AGE})" if isinstance(home_sold_year, int) else "Not Sold"
+broke_metric_str = f"Year {broke_year} (Age {broke_year - START_YEAR + START_AGE})" if isinstance(broke_year, int) else "Never (Maintains Wealth)"
+
+# --- 5. DISPLAY METRICS ---
 st.subheader("Key Milestones")
 col1, col2, col3 = st.columns(3)
-col1.metric("Net Worth Hits $0", broke_year)
-col2.metric("Sell Airbnb", airbnb_sold_year)
-col3.metric("Sell Primary Home", home_sold_year)
+col1.metric("Net Worth Hits $0", broke_metric_str)
+col2.metric("Sell Airbnb", airbnb_metric_str)
+col3.metric("Sell Primary Home", home_metric_str)
 
-# --- 5. NET WORTH GRAPH ---
-st.subheader("Net Worth Trajectory")
+# --- 6. NET WORTH GRAPH WITH TIMELINE VERTICAL LINES ---
+st.subheader("Net Worth Trajectory (Ages 68 to 95)")
 fig = go.Figure()
+
 fig.add_trace(go.Scatter(
     x=df["Year"], 
     y=df["Net Worth"], 
     mode="lines", 
     name="Net Worth", 
-    line=dict(color="#10b981", width=3)
+    line=dict(color="#10b981", width=3),
+    customdata=df["Age"],
+    hovertemplate="<b>Year:</b> %{x}<br><b>Mom's Age:</b> %{customdata}<br><b>Net Worth:</b> %{y:$,.0f}<extra></extra>"
 ))
+
+# Add dynamic vertical lines if assets get sold
+if isinstance(airbnb_sold_year, int):
+    fig.add_vline(
+        x=airbnb_sold_year, 
+        line_dash="dash", 
+        line_color="#f59e0b", 
+        annotation_text=f"Sell Airbnb (Age {airbnb_sold_year - START_YEAR + START_AGE})", 
+        annotation_position="top left"
+    )
+
+if isinstance(home_sold_year, int):
+    fig.add_vline(
+        x=home_sold_year, 
+        line_dash="dash", 
+        line_color="#ef4444", 
+        annotation_text=f"Sell Home (Age {home_sold_year - START_YEAR + START_AGE})", 
+        annotation_position="top left"
+    )
+
 fig.update_layout(
-    margin=dict(l=20, r=20, t=20, b=20),
-    height=300,
+    margin=dict(l=20, r=20, t=40, b=20),
+    height=350,
     xaxis_title="Year",
     yaxis_title="Net Worth ($)",
     template="plotly_white",
@@ -164,16 +196,17 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# --- 6. ASSUMPTIONS BLOCK ---
+# --- 7. ASSUMPTIONS BLOCK ---
 st.markdown("---")
 st.subheader("📋 System Assumptions & Rules")
 st.markdown(f"""
-* **Current Setup (2026):** Starting cash of **$3,000** and investments of **$42,000**.
+* **Timeline Parameters:** The simulation starts in **2026** (Mom's Age: **{START_AGE}**) and cuts off strictly at **2053** (Mom's Age: **{END_AGE}**).
+* **Safe-Harbor Debt Rule (2026–2027):** The system permits a temporary negative cash-flow balance during her first two years. This prevents an accidental, premature liquidation of the Airbnb before the **$450,000** cash windfall lands in October 2027.
 * **Inflation & Cost of Living:** Estimated at **{INFLATION*100:.0f}%** annually. Social Security starts at **$1,450/month** and receives a **{SS_COLA*100:.0f}%** annual COLA increase.
 * **Real Estate Growth:** Property values scale up at **{RE_GROWTH*100:.0f}%** per year.
 * **Airbnb Income:** Generates **$34,089/yr** net income (adjusts with inflation). Income completely stops if the property is liquidated.
 * **Primary Home Mortgage:** Wiped out completely in **October 2027** using the incoming **$450,000** lump sum. The remaining surplus from that lump sum is funneled directly into her liquid savings.
 * **Family Loan:** The **$245,000** loan compiles interest at **{LOAN_INT*100:.0f}%** and pays back fully as a single lump sum in **2029** (3-year average marker).
 * **Investment Growth:** Liquid asset funds grow at **{INVESTMENT_GROWTH*100:.0f}%** annually.
-* **Liquidation Protocol:** If her cash balance runs below $0, the system automatically triggers a sale of the Airbnb first at its appreciated value. If cash bottoms out again down the road, it triggers the sale of her primary home.
+* **Liquidation Protocol:** Post-2027, if her cash balance runs below $0, the system automatically triggers a sale of the Airbnb first at its appreciated value. If cash bottoms out again down the road, it triggers the sale of her primary home.
 """)
