@@ -296,4 +296,4 @@ with graph_layout:
     )
 
 
-st.markdown("* **Investments:** Liquid moves at 4%.")
+
