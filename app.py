@@ -11,23 +11,7 @@ st.set_page_config(
 st.title("📊 Mom's Financial Runway Planner")
 st.write("Adjust the slider to see how changing annual spending changes her financial future.")
 
-# --- 1. INTERACTIVE SLIDER ---
-spending_today = st.slider(
-    "Target Annual Spending (In Today's Dollars)", 
-    min_value=60000, 
-    max_value=300000, 
-    value=100000, 
-    step=5000,
-    format="$%d",
-    help="Current spending baseline is marked at $200,000 below."
-)
-
-# Visual marker directly beneath the slider
-st.markdown(
-    "📍 **Current Spending Baseline: $200,000**"
-)
-
-# --- 2. SIMULATION CONSTANTS & ASSUMPTIONS ---
+# --- 1. SIMULATION CONSTANTS & ASSUMPTIONS ---
 START_YEAR = 2026
 START_AGE = 68
 END_AGE = 95
@@ -57,7 +41,21 @@ mortgage_payment = 12500
 family_loan = 245000
 ss_annual = 1450 * 12
 
-# --- LIVE TRACKING VARIABLES ---
+# --- INTERACTIVE SLIDER (Moved closer to chart engine processing) ---
+spending_today = st.slider(
+    "Target Annual Spending (In Today's Dollars)", 
+    min_value=60000, 
+    max_value=300000, 
+    value=100000, 
+    step=5000,
+    format="$%d",
+    help="Current spending baseline is marked at $200,000 below."
+)
+
+# Visual marker directly beneath the slider
+st.markdown("📍 **Current Spending Baseline: $200,000**")
+
+# --- 2. LIVE TRACKING VARIABLES ---
 curr_liquid = cash + investments
 curr_airbnb_val = airbnb_val
 curr_home_val = home_val
@@ -166,30 +164,15 @@ for t in range(YEARS_TO_PROJECT + 1):
 
 df = pd.DataFrame(chart_data)
 
-# --- 4. DISPLAY METRICS (Native markdown layout) ---
+# --- 4. DISPLAY METRICS (Optimized Single Line for Mobile) ---
 st.subheader("🏁 Key Milestones")
-col1, col2, col3 = st.columns(3)
 
-with col1:
-    st.markdown("**Net Worth $0**")
-    if broke_year:
-        st.markdown(f"🔴 **Year {broke_year}**\n*(Age {broke_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Never**\n*(Maintains Wealth)*")
+broke_status = f"🔴 **Net Worth $0:** Year {broke_year} (Age {broke_year - START_YEAR + START_AGE})" if broke_year else "🟢 **Net Worth $0:** Never"
+airbnb_status = f"🟠 **Sell Airbnb:** Year {airbnb_sold_year} (Age {airbnb_sold_year - START_YEAR + START_AGE})" if airbnb_sold_year else "🟢 **Airbnb:** Not Sold"
+home_status = f"💗 **Sell Home:** Year {home_sold_year} (Age {home_sold_year - START_YEAR + START_AGE})" if home_sold_year else "🟢 **Home:** Not Sold"
 
-with col2:
-    st.markdown("**Sell Airbnb**")
-    if airbnb_sold_year:
-        st.markdown(f"🟠 **Year {airbnb_sold_year}**\n*(Age {airbnb_sold_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Not Sold**")
-
-with col3:
-    st.markdown("**Sell Primary Home**")
-    if home_sold_year:
-        st.markdown(f"💗 **Year {home_sold_year}**\n*(Age {home_sold_year - START_YEAR + START_AGE})*")
-    else:
-        st.markdown("🟢 **Not Sold**")
+# Outputs all items cleanly on one horizontal wrapping line
+st.markdown(f"{broke_status} &nbsp;•&nbsp; {airbnb_status} &nbsp;•&nbsp; {home_status}")
 
 # --- 5. NET WORTH GRAPH ---
 st.subheader("Net Worth Trajectory (Ages 68 to 95)")
@@ -205,6 +188,7 @@ fig.add_trace(go.Scatter(
     hovertemplate="<b>Year:</b> %{x}<br><b>Net Worth:</b> %{y:$,.0f}<extra></extra>"
 ))
 
+# Alternating positions to eliminate vertical overlaps
 if airbnb_sold_year:
     airbnb_age = airbnb_sold_year - START_YEAR + START_AGE
     fig.add_vline(
@@ -212,7 +196,7 @@ if airbnb_sold_year:
         line_dash="dash", 
         line_color="#f59e0b", 
         annotation_text=f"Sell Airbnb (Age {airbnb_age})", 
-        annotation_position="top left"
+        annotation_position="top right"
     )
 
 if home_sold_year:
