@@ -3,16 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # --- PAGE SETUP ---
-st.set_page_config(
-    page_title="Mom's Runway", 
-    layout="centered"
-)
+st.set_page_config(page_title="Mom's Runway", layout="centered")
 
 st.title("📊 Mom's Financial Runway Planner")
-st.write(
-    "Adjust slider to see "
-    "changes to her financial future."
-)
+st.write("Adjust slider to see changes to her financial future.")
 
 # --- LAYOUT CONTAINERS ---
 milestones_layout = st.container()
@@ -23,7 +17,7 @@ graph_layout = st.container()
 START_YEAR = 2026
 START_AGE = 68
 END_AGE = 95
-YEARS_TO_PROJECT = END_AGE - START_AGE 
+YEARS_TO_PROJECT = 27 
 
 INFLATION = 0.03
 SS_COLA = 0.03          
@@ -48,17 +42,8 @@ ss_annual = 1450 * 12
 
 # --- SLIDER ---
 with slider_layout:
-    spending_today = st.slider(
-        "Target Annual Spending", 
-        min_value=60000, 
-        max_value=300000, 
-        value=100000, 
-        step=5000,
-        format="$%d"
-    )
-    st.markdown(
-        "📍 **Baseline: $200,000**"
-    )
+    spending_today = st.slider("Target Annual Spending", min_value=60000, max_value=300000, value=100000, step=5000, format="$%d")
+    st.markdown("📍 **Baseline: $200,000**")
 
 # --- VARIABLES ---
 curr_liquid = cash + investments
@@ -97,66 +82,44 @@ for t in range(YEARS_TO_PROJECT + 1):
         curr_mortgage = 0 
         
     if year == 2029 and loan_active:
-        loan_payback = family_loan * (
-            (1 + LOAN_INT) ** 3
-        )
+        loan_payback = family_loan * ((1 + LOAN_INT) ** 3)
         curr_liquid += loan_payback
         loan_active = False
 
     if year == 2036 and airbnb_owned:
-        gain = max(
-            0, 
-            curr_airbnb_val - airbnb_basis
-        )
+        gain = max(0, curr_airbnb_val - airbnb_basis)
         tax_owed = gain * CAP_GAINS_RATE
-        curr_liquid += (
-            curr_airbnb_val - tax_owed
-        )
+        curr_liquid += (curr_airbnb_val - tax_owed)
         airbnb_owned = False
         airbnb_sold_year = year
 
     target_spending = spending_today * inf_factor
     
-    # Broken down to protect line limits
     m_cost = 0
     if curr_mortgage > 0:
         m_cost = mortgage_payment
 
     if airbnb_owned:
-        income = curr_ss + (
-            airbnb_gross * inf_factor
-        )
+        income = curr_ss + (airbnb_gross * inf_factor)
         expenses = target_spending + m_cost
     else:
         income = curr_ss
-        l_spend = max(
-            0, 
-            spending_today - airbnb_exp
-        )
-        expenses = (
-            l_spend * inf_factor
-        ) + m_cost
+        l_spend = max(0, spending_today - airbnb_exp)
+        expenses = (l_spend * inf_factor) + m_cost
     
     net_cash_flow = income - expenses
     curr_liquid += net_cash_flow
     
     if curr_liquid < 0 and year > 2027:
         if airbnb_owned:
-            gain = max(
-                0, 
-                curr_airbnb_val - airbnb_basis
-            )
+            gain = max(0, curr_airbnb_val - airbnb_basis)
             tax_owed = gain * CAP_GAINS_RATE
-            curr_liquid += (
-                curr_airbnb_val - tax_owed
-            )
+            curr_liquid += (curr_airbnb_val - tax_owed)
             airbnb_owned = False
             airbnb_sold_year = year
             
         if curr_liquid < 0 and home_owned:
-            curr_liquid += (
-                curr_home_val - curr_mortgage
-            )
+            curr_liquid += (curr_home_val - curr_mortgage)
             curr_mortgage = 0
             home_owned = False
             home_sold_year = year
@@ -175,19 +138,11 @@ for t in range(YEARS_TO_PROJECT + 1):
         if airbnb_owned:
             nw += curr_airbnb_val
         if home_owned:
-            nw += (
-                curr_home_val - curr_mortgage
-            )
+            nw += (curr_home_val - curr_mortgage)
         if loan_active:
-            nw += family_loan * (
-                (1 + LOAN_INT) ** t
-            )
+            nw += family_loan * ((1 + LOAN_INT) ** t)
         
-    chart_data.append({
-        "Year": int(year), 
-        "Age": int(age), 
-        "Net Worth": float(nw)
-    })
+    chart_data.append({"Year": int(year), "Age": int(age), "Net Worth": float(nw)})
 
 df = pd.DataFrame(chart_data)
 
@@ -197,88 +152,58 @@ with milestones_layout:
     
     if broke_year:
         b_age = broke_year - START_YEAR + START_AGE
-        broke_status = (
-            f"🔴 **Net Worth $0:** "
-            f"Year {broke_year} (Age {b_age})"
-        )
+        broke_status = f"🔴 **Net Worth $0:** Year {broke_year} (Age {b_age})"
     else:
         broke_status = "🟢 **Net Worth $0:** Never"
         
     if airbnb_sold_year:
-        a_age = (
-            airbnb_sold_year - 
-            START_YEAR + START_AGE
-        )
-        airbnb_status = (
-            f"🟠 **Sell Airbnb:** "
-            f"Year {airbnb_sold_year} "
-            f"(Age {a_age})"
-        )
+        a_age = airbnb_sold_year - START_YEAR + START_AGE
+        airbnb_status = f"🟠 **Sell Airbnb:** Year {airbnb_sold_year} (Age {a_age})"
     else:
         airbnb_status = "🟢 **Airbnb:** Not Sold"
         
     if home_sold_year:
-        h_age = (
-            home_sold_year - 
-            START_YEAR + START_AGE
-        )
-        home_status = (
-            f"💗 **Sell Home:** "
-            f"Year {home_sold_year} "
-            f"(Age {h_age})"
-        )
+        h_age = home_sold_year - START_YEAR + START_AGE
+        home_status = f"💗 **Sell Home:** Year {home_sold_year} (Age {h_age})"
     else:
         home_status = "🟢 **Home:** Not Sold"
     
-    st.markdown(
-        f"{broke_status} &nbsp;•&nbsp; "
-        f"{airbnb_status} &nbsp;•&nbsp; "
-        f"{home_status}"
-    )
+    msg = f"{broke_status} &nbsp;•&nbsp; {airbnb_status} &nbsp;•&nbsp; {home_status}"
+    st.markdown(msg)
     st.divider()
 
 # --- GRAPH ---
 with graph_layout:
     st.subheader("Net Worth Trajectory")
-
     fig = go.Figure()
-
-    fig.add_trace(go.Scatter(
-        x=df["Year"].tolist(), 
-        y=df["Net Worth"].tolist(), 
-        mode="lines+markers", 
-        name="Net Worth", 
-        line=dict(color="#10b981", width=3),
-        hovertemplate=(
-            "<b>Year:</b> %{x}<br>"
-            "<b>Net Worth:</b> "
-            "%{y:$,.0f}<extra></extra>"
-        )
-    ))
+    
+    x_vals = df["Year"].tolist()
+    y_vals = df["Net Worth"].tolist()
+    
+    fig.add_trace(go.Scatter(x=x_vals, y=y_vals, mode="lines+markers", name="Net Worth", line=dict(color="#10b981", width=3), hovertemplate="<b>Year:</b> %{x}<br><b>Net Worth:</b> %{y:$,.0f}<extra></extra>"))
 
     if airbnb_sold_year:
-        a_age = (
-            airbnb_sold_year - 
-            START_YEAR + START_AGE
-        )
-        fig.add_vline(
-            x=airbnb_sold_year, 
-            line_dash="dash", 
-            line_color="#f59e0b", 
-            annotation_text=(
-                f"Sell Airbnb "
-                f"(Age {a_age})"
-            ), 
-            annotation_position="bottom right"
-        )
+        a_age = airbnb_sold_year - START_YEAR + START_AGE
+        txt_a = f"Sell Airbnb (Age {a_age})"
+        fig.add_vline(x=airbnb_sold_year, line_dash="dash", line_color="#f59e0b", annotation_text=txt_a, annotation_position="bottom right")
 
     if home_sold_year:
-        h_age = (
-            home_sold_year - 
-            START_YEAR + START_AGE
-        )
-        fig.add_vline(
-            x=home_sold_year, 
-            line_dash="dash", 
-            line_color="#ec4899", 
-            annotation_text=(
+        h_age = home_sold_year - START_YEAR + START_AGE
+        txt_h = f"Sell Home (Age {h_age})"
+        fig.add_vline(x=home_sold_year, line_dash="dash", line_color="#ec4899", annotation_text=txt_h, annotation_position
+
+        fig.update_layout(margin=dict(l=15, r=15, t=40, b=15), height=375, xaxis_title="Year", yaxis_title="Net Worth ($)", template="plotly_white", hovermode="x unified")
+    st.plotly_chart(fig, use_container_width=True)
+
+# --- ASSUMPTIONS ---
+st.divider()
+st.subheader("📋 Assumptions")
+st.markdown("* **Timeline:** 2026 (Age 68) to 2053 (Age 95).")
+st.markdown("* **Slider:** Includes Airbnb expenses ($58,386). Drops after sale.")
+st.markdown("* **Airbnb Tax:** Sold by 2036. 20% tax on growth above $400k basis.")
+st.markdown("* **Safe-Harbor (2026-2027):** Allows negative cash before $450k lands.")
+st.markdown("* **Inflation:** 3% inflation. SS starts at $1,450/mo with 3% COLA.")
+st.markdown("* **Real Estate:** 4% annual property growth.")
+st.markdown("* **Mortgage:** Wiped Oct 2027 via $450k windfall.")
+st.markdown("* **Family Loan:** $245k loan compiles at 6%, returns in 2029.")
+st.markdown("* **Investments:** Liquid funds grow at 4% annually.")
