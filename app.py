@@ -5,133 +5,134 @@ import plotly.graph_objects as go
 st.set_page_config(layout="centered")
 st.title("📊 Mom's Financial Runway")
 
-START_YEAR = 2026
-START_AGE = 68
-YEARS = 27 
+Y_ST = 2026
+A_ST = 68
+YRS = 27 
 INF = 0.03
 COLA = 0.03          
-GROWTH = 0.04       
-RE_GROWTH = 0.04        
-LOAN_INT = 0.06
-TAX_RATE = 0.20  
+GRW = 0.04       
+RE_GRW = 0.04        
+L_INT = 0.06
+TAX = 0.20  
 
-airbnb_val = 700000
-airbnb_basis = 400000   
-airbnb_gross = 92475
-airbnb_exp = 92475 - 34089 
+ab_val = 700000
+ab_bas = 400000   
+ab_grs = 92475
+ab_exp = 92475 - 34089 
 
-curr_liquid = 45000
-curr_home_val = 317000
-curr_mortgage = 174000 
-curr_ss = 1450 * 12
+liq = 45000
+hm_val = 317000
+mtg = 174000 
+ss = 1450 * 12
 
-with st.container():
-    val = st.slider("Spending", 60000, 300000, 250000)
+val = st.slider("Spending", 60000, 300000, 250000)
 
-airbnb_sold_year = None
-home_sold_year = None
-broke_year = None
-airbnb_owned = True
-home_owned = True
-loan_active = True
-is_broke = False
-chart_data = []
+ay = None
+hy = None
+by = None
+ao = True
+ho = True
+la = True
+ib = False
+cd = []
 
-for t in range(YEARS + 1):
-    year = START_YEAR + t
-    age = START_AGE + t
-    inf_factor = (1 + INF) ** t
+for t in range(YRS + 1):
+    yr = Y_ST + t
+    ag = A_ST + t
+    inf = (1 + INF) ** t
     
     if t > 0:
-        airbnb_val *= (1 + RE_GROWTH)
-        curr_home_val *= (1 + RE_GROWTH)
-        curr_ss *= (1 + COLA)
-        if curr_liquid > 0:
-            curr_liquid *= (1 + GROWTH)
+        ab_val *= (1 + RE_GRW)
+        hm_val *= (1 + RE_GRW)
+        ss *= (1 + COLA)
+        if liq > 0:
+            liq *= (1 + GRW)
 
-    if year == 2027:
-        curr_liquid += 450000
-        curr_liquid -= curr_mortgage
-        curr_mortgage = 0 
+    if yr == 2027:
+        liq += 450000
+        liq -= mtg
+        mtg = 0 
         
-    if year == 2029 and loan_active:
-        curr_liquid += 245000 * ((1 + LOAN_INT) ** 3)
-        loan_active = False
+    if yr == 2029 and la:
+        liq += 245000 * ((1 + L_INT) ** 3)
+        la = False
 
-    if year == 2036 and airbnb_owned:
-        gain = max(0, airbnb_val - airbnb_basis)
-        curr_liquid += airbnb_val - (gain * TAX_RATE)
-        airbnb_owned = False
-        airbnb_sold_year = year
+    if yr == 2036 and ao:
+        gn = max(0, ab_val - ab_bas)
+        liq += ab_val - (gn * TAX)
+        ao = False
+        ay = yr
 
-    target_spending = val * inf_factor
-    m_cost = 12500 if curr_mortgage > 0 else 0
+    tgt = val * inf
+    mc = 12500 if mtg > 0 else 0
 
-    if airbnb_owned:
-        inc = curr_ss + (airbnb_gross * inf_factor)
-        exp = target_spending + m_cost
+    if ao:
+        inc = ss + (ab_grs * inf)
+        exp = tgt + mc
     else:
-        inc = curr_ss
-        l_spend = max(0, val - airbnb_exp)
-        exp = (l_spend * inf_factor) + m_cost
+        inc = ss
+        lsp = max(0, val - ab_exp)
+        exp = (lsp * inf) + mc
     
-    curr_liquid += inc - exp
+    liq += inc - exp
     
-    if curr_liquid < 0 and year > 2027:
-        if airbnb_owned:
-            gain = max(0, airbnb_val - airbnb_basis)
-            curr_liquid += airbnb_val - (gain * TAX_RATE)
-            airbnb_owned = False
-            airbnb_sold_year = year
+    if liq < 0 and yr > 2027:
+        if ao:
+            gn = max(0, ab_val - ab_bas)
+            liq += ab_val - (gn * TAX)
+            ao = False
+            ay = yr
             
-        if curr_liquid < 0 and home_owned:
-            curr_liquid += curr_home_val - curr_mortgage
-            curr_mortgage = 0
-            home_owned = False
-            home_sold_year = year
+        if liq < 0 and ho:
+            liq += hm_val - mtg
+            mtg = 0
+            ho = False
+            hy = yr
             
-        if curr_liquid < 0:
-            is_broke = True
-            if broke_year is None:
-                broke_year = year
-            curr_liquid = 0
+        if liq < 0:
+            ib = True
+            if by is None:
+                by = yr
+            liq = 0
 
-    if is_broke:
+    if ib:
         nw = 0
-        curr_liquid = 0
+        liq = 0
     else:
-        nw = curr_liquid
-        if airbnb_owned:
-            nw += airbnb_val
-        if home_owned:
-            nw += curr_home_val - curr_mortgage
-        if loan_active:
-            nw += 245000 * ((1 + LOAN_INT) ** t)
+        nw = liq
+        if ao:
+            nw += ab_val
+        if ho:
+            nw += hm_val - mtg
+        if la:
+            nw += 245000 * ((1 + L_INT) ** t)
         
-    chart_data.append({"Yr": year, "Age": age, "NW": nw})
+    cd.append({"Yr": yr, "Age": ag, "NW": nw})
 
-df = pd.DataFrame(chart_data)
+df = pd.DataFrame(cd)
 
 st.subheader("Net Worth Trajectory")
 fig = go.Figure()
-x_v = df["Yr"].tolist()
-y_v = df["NW"].tolist()
-sc = go.Scatter(x=x_v, y=y_v, mode="lines+markers")
+sc = go.Scatter(
+    x=df["Yr"].tolist(), 
+    y=df["NW"].tolist(), 
+    mode="lines+markers"
+)
 fig.add_trace(sc)
 
-if airbnb_sold_year:
-    a_age = airbnb_sold_year - START_YEAR + START_AGE
-    t_a = f"Airbnb (Age {a_age})"
-    da = {"x": airbnb_sold_year, "line_dash": "dash"}
+if ay:
+    ag_a = ay - Y_ST + A_ST
+    t_a = f"Airbnb (Age {ag_a})"
+    da = {"x": ay, "line_dash": "dash"}
     da["line_color"] = "#f59e0b"
     da["annotation_text"] = t_a
     da["annotation_position"] = "bottom right"
     fig.add_vline(**da)
 
-if home_sold_year:
-    h_age = home_sold_year - START_YEAR + START_AGE
-    t_h = f"Home (Age {h_age})"
-    dh = {"x": home_sold_year, "line_dash": "dash"}
+if hy:
+    ag_h = hy - Y_ST + A_ST
+    t_h = f"Home (Age {ag_h})"
+    dh = {"x": hy, "line_dash": "dash"}
     dh["line_color"] = "#ec4899"
     dh["annotation_text"] = t_h
     dh["annotation_position"] = "top left"
@@ -143,4 +144,20 @@ st.plotly_chart(fig, use_container_width=True)
 st.divider()
 st.subheader("🏁 Key Milestones")
 
-if broke_
+if by:
+    ag_b = by - Y_ST + A_ST
+    st.header(f"🔴 Broke: {by} (Age {ag_b})")
+else:
+    st.header("🟢 Broke: Never")
+
+if ay:
+    ag_a = ay - Y_ST + A_ST
+    st.header(f"🟠 Sell Airbnb: {ay} (Age {ag_a})")
+else:
+    st.header("🟢 Airbnb: Not Sold")
+
+if hy:
+    ag_h = hy - Y_ST + A_ST
+    st.header(f"💗 Sell Home: {hy} (Age {ag_h})")
+else:
+    st.header("🟢 Home: Not Sold")
