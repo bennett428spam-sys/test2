@@ -56,9 +56,9 @@ curr_mortgage = home_val - home_equity
 curr_ss = ss_annual
 
 # Tracking variables for milestones
-airbnb_sold_year = "Not Sold"
-home_sold_year = "Not Sold"
-broke_year = "Never"
+airbnb_sold_year = None
+home_sold_year = None
+broke_year = None
 
 airbnb_owned = True
 home_owned = True
@@ -132,7 +132,7 @@ for t in range(YEARS_TO_PROJECT + 1):
             
         if curr_liquid < 0:
             is_broke = True
-            if broke_year == "Never":
+            if broke_year is None:
                 broke_year = year
             curr_liquid = 0
 
@@ -149,17 +149,4 @@ for t in range(YEARS_TO_PROJECT + 1):
         if loan_active:
             nw += family_loan * ((1 + LOAN_INT) ** t)
         
-    chart_data.append({"Year": year, "Age": age, "Net Worth": nw})
-
-df = pd.DataFrame(chart_data)
-
-# --- 4. MOBILE-OPTIMIZED TEXT LABELS (With Triple Quote Wrappers) ---
-if isinstance(broke_year, int):
-    broke_html = f"""<span style="font-size:18px;font-weight:bold;color:#ef4444;">Year {broke_year}</span><br><span style="font-size:14px;color:#6b7280;">Age {broke_year - START_YEAR + START_AGE}</span>"""
-else:
-    broke_html = f"""<span style="font-size:16px;font-weight:bold;color:#10b981;">Never<br>(Maintains Wealth)</span>"""
-
-if isinstance(airbnb_sold_year, int):
-    airbnb_html = f"""<span style="font-size:18px;font-weight:bold;color:#f59e0b;">Year {airbnb_sold_year}</span><br><span style="font-size:14px;color:#6b7280;">Age {airbnb_sold_year - START_YEAR + START_AGE}</span>"""
-else:
-    airbnb_html = f"""<span style="font-size:
+    chart_data.append({"Year": year, "Age": age, "
