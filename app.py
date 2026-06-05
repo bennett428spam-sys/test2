@@ -53,7 +53,7 @@ with slider_layout:
         step=5000,
         format="$%d"
     )
-    st.markdown("📍 **Baseline: $200,000**")
+    st.markdown("📍 **Baseline: $250,000**")
 
 # --- VARIABLES ---
 curr_liquid = cash + investments
