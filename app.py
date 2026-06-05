@@ -159,8 +159,8 @@ for t in range(YEARS_TO_PROJECT + 1):
             nw += family_loan * ((1 + LOAN_INT) ** t)
         
     chart_data.append({
-        "Year": year, 
-        "Age": age, 
+        "Year": int(year), 
+        "Age": int(age), 
         "Net Worth": float(nw)
     })
 
@@ -185,4 +185,15 @@ with col2:
         st.markdown("🟢 **Not Sold**")
 
 with col3:
-    st.markdown("**Sell Primary Home
+    st.markdown("**Sell Primary Home**")
+    if home_sold_year:
+        st.markdown(f"💗 **Year {home_sold_year}**\n*(Age {home_sold_year - START_YEAR + START_AGE})*")
+    else:
+        st.markdown("🟢 **Not Sold**")
+
+# --- 5. NET WORTH GRAPH ---
+st.subheader("Net Worth Trajectory (Ages 68 to 95)")
+
+years_list = df["Year"].tolist()
+nw_list = df["Net Worth"].tolist()
+hover_text =
