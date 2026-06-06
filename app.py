@@ -25,7 +25,9 @@ hm_val = 317000
 mtg = 174000 
 ss = 1450 * 12
 
-val = st.slider("Spending", 60000, 300000, 250000)
+val = st.slider(
+    "Spending", 60000, 300000, 250000
+)
 
 ay = None
 hy = None
@@ -138,8 +140,12 @@ if hy:
     dh["annotation_position"] = "top left"
     fig.add_vline(**dh)
 
-fig.update_layout(height=375, template="plotly_white")
-st.plotly_chart(fig, use_container_width=True)
+fig.update_layout(
+    height=375, template="plotly_white"
+)
+st.plotly_chart(
+    fig, use_container_width=True
+)
 
 st.divider()
 st.subheader("🏁 Key Milestones")
@@ -152,12 +158,12 @@ else:
 
 if ay:
     ag_a = ay - Y_ST + A_ST
-    st.header(f"🟠 Sell Airbnb: {ay} (Age {ag_a})")
+    st.header(f"🟠 Airbnb: {ay} (Age {ag_a})")
 else:
     st.header("🟢 Airbnb: Not Sold")
 
 if hy:
     ag_h = hy - Y_ST + A_ST
-    st.header(f"💗 Sell Home: {hy} (Age {ag_h})")
+    st.header(f"💗 Home: {hy} (Age {ag_h})")
 else:
     st.header("🟢 Home: Not Sold")
